@@ -34,17 +34,21 @@ from sklearn import linear_model
 
 #X = [xWeight, xAng1]
 
+#Fix temporaire pour eliminer la dose nulle
+yDosePerFrame[np.where(yDosePerFrame==0.0)]=0.001
+
+
 xEPT = xEPT.reshape(len(xEPT),1)
 yDosePerFrame = yDosePerFrame.reshape(len(yDosePerFrame),1)
 
 reg = linear_model.LinearRegression()
-reg.fit(xEPT, yDosePerFrame)
+reg.fit(xEPT, np.log(yDosePerFrame))
 
 x = np.arange(0,40,1)
 x = x.reshape(len(x),1)
 yPredict = reg.predict(x)
-plt.scatter(x,yPredict)
-
+plt.plot(x, yPredict, 'bs',xEPT, np.log(yDosePerFrame),'rx')
+plt.show()
 
 #from Perceptron import *
 #from myObjectPerceptron import *
