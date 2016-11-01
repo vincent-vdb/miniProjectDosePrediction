@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib.colors import ListedColormap
 
 from sklearn import linear_model
+from sklearn.utils import shuffle
 
 #import data from database
 df = pd.read_csv('angouleme_data_cardiac01_Low_FOV20_Record__weight_dose_ang1_ang2_ept_nFrame.csv',header=None)
@@ -36,15 +37,120 @@ xOnes = np.ones(len(xWeight))
 xOnes = xOnes.reshape(len(xOnes),1)
 
 
-X = np.concatenate((xOnes, xWeight, xAng1, xAng2), axis=1)
-#X = np.concatenate((xOnes,xEPT),axis=1)
+def regressionAndLearningCurve(xTrain, yTrain, xVal, yVal, myAlpha):
+  #Make regression on EPT only and log of dose per frame
+  reg = linear_model.Ridge(alpha = myAlpha)
+  reg.fit(xTrain, yTrain)
 
+  #Compute the error on the training set and on the validation set
+  yPredictTrain = reg.predict(xTrain)
+  errorTrain = np.mean(np.square(yPredictTrain-yTrain))
+
+  yPredictVal = reg.predict(xVal)
+  errorValid = np.mean(np.square(yPredictVal-yVal))
+
+  print("error on training set :",errorTrain)
+  print("error on valid set :",errorValid)
+  print(reg.coef_)
+
+  print(np.mean(yTrain))
+  print(np.mean(yVal))
+
+  relativeErrorTrainLearn = np.abs((yPredictTrain - yTrain)/yTrain)
+  relativeErrorValidLearn = np.abs((yPredictVal - yVal)/yVal)
+  print("mean train relative error: ",np.mean(relativeErrorTrainLearn))
+  print("mean valid relative error: ",np.mean(relativeErrorValidLearn))
+
+  # compute the learning curves
+  errorTrainLearn = np.zeros(len(xTrain))
+  errorValidLearn = np.zeros(len(xTrain))
+
+  for i in range(1,len(xTrain)):
+    reg.fit(xTrain[:i], yTrain[:i])
+    yPredictTrain = reg.predict(xTrain[:i])
+    errorTrainLearn[i] = np.mean(np.square(yPredictTrain-yTrain[:i]))
+    yPredictVal = reg.predict(xVal)
+    errorValidLearn[i] = np.mean(np.square(yPredictVal-yVal))
+
+
+#  plt.hist(relativeErrorValidLearn,50)
+#  plt.show()
+
+
+
+  #Plot the learning curves
+  learningIt = np.arange(0,len(xTrain))
+
+  plt.plot(learningIt, errorTrainLearn, learningIt, errorValidLearn)
+  plt.show()
+  #Should show model too simple cause of high bias => need to use more features
+
+  """
+  plotx = np.arange(1,50)
+  plotx = plotx.reshape(len(plotx),1)
+  ploty = reg.predict(plotx)
+
+  plt.plot(plotx, ploty, xTrain[:1000], yTrain[:1000], 'rx')
+  plt.show()
+  """
+
+  return
+
+
+
+
+"""
 #Create example with only EPT
+xEPT, yDosePerFrame = shuffle(xEPT, yDosePerFrame, random_state = 0)
+
 Xepttrain = xEPT[0:6000]
 Xeptval = xEPT[6001:8000]
 Xepttest = xEPT[8001:]
 
-#Create train, valid and test datasets
+Ytrain = yDosePerFrame[0:6000]
+Yval = yDosePerFrame[6001:8000]
+Ytest = yDosePerFrame[8001:]
+
+
+
+# make the regression for only EPT
+regressionAndLearningCurve(Xepttrain,np.log(Ytrain),Xeptval,np.log(Yval), 0);
+# mean relative error of 19 %, high bias case
+"""
+
+"""
+#make regression on weight, angle 1 and 2
+X = np.concatenate((xWeight, xAng1, xAng2), axis=1)
+
+X, yDosePerFrame = shuffle(X, yDosePerFrame, random_state = 0)
+
+Xtrain = X[0:6000]
+Xval = X[6001:8000]
+Xtest = X[8001:]
+
+Ytrain = yDosePerFrame[0:6000]
+Yval = yDosePerFrame[6001:8000]
+Ytest = yDosePerFrame[8001:]
+
+regressionAndLearningCurve(Xtrain,Ytrain,Xval,Yval, 0.0);
+##mean relative error of 96 % => too much and high bias
+"""
+
+
+#make regression on weight, weight squared angle 1 and 2
+
+#X = np.concatenate((xWeight, np.square(xWeight), xAng1, xAng2), axis=1)
+#mean relative error 96% still high bias
+
+X = np.concatenate((xWeight, np.square(xWeight), xAng1, np.square(xAng1), xAng2, np.square(xAng2)), axis=1)
+#mean relative error 83% still high bias
+
+#X = np.concatenate((xWeight, np.square(xWeight), np.cos(xAng1/10*3.14/180), np.sin(xAng1/10*3.14/180), np.cos(xAng2/10*3.14/180), np.sin(xAng2/10*3.14/180)), axis=1)
+# mean relative error 83% still high bias with alpha = 0
+
+X, yDosePerFrame = shuffle(X, yDosePerFrame, random_state = 0)
+
+
 Xtrain = X[0:6000]
 Xval = X[6001:8000]
 Xtest = X[8001:]
@@ -54,40 +160,9 @@ Yval = yDosePerFrame[6001:8000]
 Ytest = yDosePerFrame[8001:]
 
 
+regressionAndLearningCurve(Xtrain,Ytrain,Xval,Yval, 0.001);
+##mean relative error of 57 % => too much
 
-#Make regression on EPT only and log of dose per frame
-reg = linear_model.LinearRegression()
-reg.fit(Xepttrain, np.log(Ytrain))
-
-#Compute the error on the training set and on the validation set
-yPredictTrain = reg.predict(Xepttrain)
-errorTrain = 1/len(Xepttrain)*np.sum(np.square(yPredictTrain-np.log(Ytrain)))
-
-yPredictVal = reg.predict(Xeptval)
-errorValid = 1/len(Xeptval)*np.sum(np.square(yPredictVal-np.log(Yval)))
-
-print("error on training set :",errorTrain)
-print("error on valid set :",errorValid)
-
-# compute the learning curves
-
-errorTrainLearn = np.zeros(len(Xepttrain))
-errorValidLearn = np.zeros(len(Xepttrain))
-
-for i in range(1,len(Xepttrain)):
-  reg.fit(Xepttrain[:i], np.log(Ytrain[:i]))
-  yPredictTrain = reg.predict(Xepttrain[:i])
-  errorTrainLearn[i] = 1/(i+1)*np.sum(np.square(yPredictTrain-np.log(Ytrain[:i])))
-  yPredictVal = reg.predict(Xeptval)
-  errorValidLearn[i] = 1/len(Xeptval)*np.sum(np.square(yPredictVal-np.log(Yval)))
-
-
-#Plot the learning curves
-learningIt = np.arange(0,len(Xepttrain))
-
-plt.plot(learningIt, errorTrainLearn, learningIt, errorValidLearn)
-plt.show()
-#Should show model too simple cause of high bias => need to use more features
 
 
 """
