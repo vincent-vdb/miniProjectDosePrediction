@@ -6,6 +6,8 @@ from matplotlib.colors import ListedColormap
 from sklearn import linear_model
 from sklearn.utils import shuffle
 
+from sklearn import preprocessing
+
 from sklearn import neural_network
 
 #import data from database
@@ -13,42 +15,42 @@ df = pd.read_csv('data_cardiac01_low_fov20_record_moreFeatures.csv',header=None)
 
 #put data to x and y vectors
 xWeight = df.iloc[:,0].values
-xWeight = xWeight.reshape(len(xWeight),1)
+xWeight = preprocessing.scale(xWeight.reshape(len(xWeight),1))
 
 xSID = df.iloc[:,1].values
-xSID = xSID.reshape(len(xSID),1)
+xSID = preprocessing.scale(xSID.reshape(len(xSID),1))
 
 xTableHeight = df.iloc[:,2].values
-xTableHeight = xTableHeight.reshape(len(xTableHeight),1)
+xTableHeight = preprocessing.scale(xTableHeight.reshape(len(xTableHeight),1))
 
 xSF = df.iloc[:,3].values
-xSF = xSF.reshape(len(xSF),1)
+xSF = preprocessing.scale(xSF.reshape(len(xSF),1))
 
 xFS = df.iloc[:,4].values
 xFS = xFS.reshape(len(xFS),1)
 
 xKV = df.iloc[:,5].values
-xKV = xKV.reshape(len(xKV),1)
+xKV = preprocessing.scale(xKV.reshape(len(xKV),1))
 
 xPW = df.iloc[:,6].values
-xPW = xPW.reshape(len(xPW),1)
+xPW = preprocessing.scale(xPW.reshape(len(xPW),1))
 
 xMAS = df.iloc[:,7].values
-xMAS = xMAS.reshape(len(xMAS),1)
+xMAS = preprocessing.scale(xMAS.reshape(len(xMAS),1))
 
 xTED = df.iloc[:,8].values
-xTED = xTED.reshape(len(xTED),1)
+xTED = preprocessing.scale(xTED.reshape(len(xTED),1))
 
 yDose = df.iloc[:,9].values
 
 xAng1 = df.iloc[:,10].values
-xAng1 = xAng1.reshape(len(xAng1),1)
+xAng1 = preprocessing.scale(xAng1.reshape(len(xAng1),1))
 
 xAng2 = df.iloc[:,11].values
-xAng2 = xAng2.reshape(len(xAng2),1)
+xAng2 = preprocessing.scale(xAng2.reshape(len(xAng2),1))
 
 xEPT = df.iloc[:,12].values
-xEPT = xEPT.reshape(len(xEPT),1)
+xEPT = preprocessing.scale(xEPT.reshape(len(xEPT),1))
 
 xNOfFrame = df.iloc[:,13].values
 
@@ -86,7 +88,7 @@ def neuralNetworkRegression(xTrain, yTrain, xVal, yVal, myAlpha):
   errorTrainLearn = np.zeros(100)#len(xTrain))
   errorValidLearn = np.zeros(100)#len(xTrain))
 
-  
+  """
   for i in range(1,100):#len(xTrain)): #too much computations with all dataset...
     regNN.fit(xTrain[:50*i], yTrain[:50*i])
     yPredictTrain = regNN.predict(xTrain[:50*i])
@@ -104,7 +106,7 @@ def neuralNetworkRegression(xTrain, yTrain, xVal, yVal, myAlpha):
 
   plt.plot(learningIt, errorTrainLearn, learningIt, errorValidLearn)
   plt.show()
-  
+  """
 
   """
   plotx = np.arange(1,50)
@@ -141,8 +143,18 @@ regressionAndLearningCurve(Xepttrain,np.log(Ytrain),Xeptval,np.log(Yval), 0);
 #X = np.concatenate((xWeight, xSID, xTableHeight, xAng1, xAng2), axis=1)
 # 88 % with alpha 0.1 and 5 times 10 hidden units
 
-X = np.concatenate((xWeight, xSID, xTableHeight, xKV, xTED, xEPT, xAng1, xAng2), axis=1)
+X = np.concatenate((xWeight, xSID, xTableHeight, xKV, xTED, xAng1, xAng2), axis=1)
 # 69 % with alpha 0.1 and 5 times 10 hidden units
+# 53 % with alpha 0.1 and 5 times 10 hidden units and scaling
+
+
+
+#X = np.concatenate((xWeight, xSID, xTableHeight, xKV, xTED, xAng1, xAng2), axis=1)
+
+
+
+#X = np.concatenate((xWeight, xSID, xTableHeight, xKV, xTED, xEPT, xAng1, xAng2), axis=1)
+# 16 % with alpha 0.1 and 5 times 10 hidden units and scaling
 
 X, yDosePerFrame = shuffle(X, yDosePerFrame, random_state = 0)
 
