@@ -82,7 +82,7 @@ def neuralNetworkRegression(xTrain, yTrain, xVal, yVal, myAlpha):
   relativeErrorValidLearn = np.abs((yPredictVal - yVal)/yVal)
   print("mean train relative error: ",np.mean(relativeErrorTrainLearn))
   print("mean valid relative error: ",np.mean(relativeErrorValidLearn))
-
+  print("std valid relative error: ", np.std(relativeErrorValidLearn))
   
   # compute the learning curves
   errorTrainLearn = np.zeros(100)#len(xTrain))
@@ -143,10 +143,12 @@ regressionAndLearningCurve(Xepttrain,np.log(Ytrain),Xeptval,np.log(Yval), 0);
 #X = np.concatenate((xWeight, xSID, xTableHeight, xAng1, xAng2), axis=1)
 # 88 % with alpha 0.1 and 5 times 10 hidden units
 
-X = np.concatenate((xWeight, xSID, xTableHeight, xKV, xTED, xAng1, xAng2), axis=1)
+#X = np.concatenate((xWeight, xSID, xTableHeight, xKV, xTED, xAng1, xAng2), axis=1)
 # 69 % with alpha 0.1 and 5 times 10 hidden units
 # 53 % with alpha 0.1 and 5 times 10 hidden units and scaling
 
+
+X = np.concatenate(( np.exp(-xSF), xSF, xSID, np.square(xSID), xWeight, np.square(xWeight), xWeight*np.sin(xAng1), xWeight*np.sin(xAng2), xAng1, np.square(xAng1), xAng2, np.square(xAng2), xKV, np.exp(xKV)), axis=1)
 
 
 #X = np.concatenate((xWeight, xSID, xTableHeight, xKV, xTED, xAng1, xAng2), axis=1)

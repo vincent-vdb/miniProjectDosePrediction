@@ -77,7 +77,9 @@ def regressionAndLearningCurve(xTrain, yTrain, xVal, yVal, myAlpha):
   relativeErrorValidLearn = np.abs((yPredictVal - yVal)/yVal)
   print("mean train relative error: ",np.mean(relativeErrorTrainLearn))
   print("mean valid relative error: ",np.mean(relativeErrorValidLearn))
+  print("std valid relative error: ", np.std(relativeErrorValidLearn))
 
+  """
   # compute the learning curves
   errorTrainLearn = np.zeros(len(xTrain))
   errorValidLearn = np.zeros(len(xTrain))
@@ -101,6 +103,7 @@ def regressionAndLearningCurve(xTrain, yTrain, xVal, yVal, myAlpha):
   plt.plot(learningIt, errorTrainLearn, learningIt, errorValidLearn)
   plt.show()
   #Should show model too simple cause of high bias => need to use more features
+  """
 
   """
   plotx = np.arange(1,50)
@@ -142,7 +145,19 @@ regressionAndLearningCurve(Xepttrain,np.log(Ytrain),Xeptval,np.log(Yval), 0);
 #X = np.concatenate((xWeight, xSID, xTableHeight, xAng1, xAng2), axis=1)
 #mean relative error 87 %
 
-X = np.concatenate((xWeight, np.square(xWeight), xSID, np.square(xSID), xTableHeight, np.square(xTableHeight), xAng1, np.square(xAng1), xAng2, np.square(xAng2)), axis=1)
+#X = np.concatenate((xWeight, np.square(xWeight), xSID, np.square(xSID), xTableHeight, np.square(xTableHeight), xAng1, np.square(xAng1), xAng2, np.square(xAng2)), axis=1)
+#mean relative error 85 %
+
+#X = np.concatenate((xWeight, np.square(xWeight), np.exp(xWeight), xSID, np.square(xSID), xTableHeight, np.square(xTableHeight), xAng1, np.square(xAng1), xAng2, np.square(xAng2), xKV, np.exp(xKV), xSF, np.exp(xSF), np.exp(-xSF)), axis=1)
+#mean relative error 59 %
+
+#X = np.concatenate((np.square(xEPT), xEPT,  xSID, np.square(xSID), xTableHeight, np.square(xTableHeight), xKV, np.exp(xKV), xSF, np.exp(xSF), np.exp(-xSF)), axis=1)
+#mean relative error 24 % +- 40 %
+
+X = np.concatenate(( np.exp(-xSF), np.square(xSID), xWeight, np.square(xWeight), xWeight*np.sin(xAng1), xWeight*np.sin(xAng2), xAng1, np.square(xAng1), xAng2, np.square(xAng2), xKV, np.exp(xKV)), axis=1)
+#mean relative error 59 % +- 79 %
+
+#, xMAS, np.square(xKV), np.exp(np.square(xKV))
 
 X, yDosePerFrame = shuffle(X, yDosePerFrame, random_state = 0)
 
@@ -156,7 +171,7 @@ Yval = yDosePerFrame[6001:8000]
 Ytest = yDosePerFrame[8001:]
 
 
-regressionAndLearningCurve(Xtrain,Ytrain,Xval,Yval, 0.1);
+regressionAndLearningCurve(Xtrain,Ytrain,Xval,Yval, 0.);
 
 
 
