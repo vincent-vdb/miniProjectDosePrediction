@@ -5,6 +5,7 @@ from matplotlib.colors import ListedColormap
 
 from sklearn import linear_model
 from sklearn.utils import shuffle
+from sklearn import preprocessing
 
 #import data from database
 df = pd.read_csv('data_cardiac01_low_fov20_record_moreFeatures.csv',header=None)
@@ -79,7 +80,7 @@ def regressionAndLearningCurve(xTrain, yTrain, xVal, yVal, myAlpha):
   print("mean valid relative error: ",np.mean(relativeErrorValidLearn))
   print("std valid relative error: ", np.std(relativeErrorValidLearn))
 
-  """
+  
   # compute the learning curves
   errorTrainLearn = np.zeros(len(xTrain))
   errorValidLearn = np.zeros(len(xTrain))
@@ -103,7 +104,7 @@ def regressionAndLearningCurve(xTrain, yTrain, xVal, yVal, myAlpha):
   plt.plot(learningIt, errorTrainLearn, learningIt, errorValidLearn)
   plt.show()
   #Should show model too simple cause of high bias => need to use more features
-  """
+  
 
   """
   plotx = np.arange(1,50)
@@ -138,8 +139,6 @@ regressionAndLearningCurve(Xepttrain,np.log(Ytrain),Xeptval,np.log(Yval), 0);
 # mean relative error of 19 %, high bias case
 """
 
-
-
 #make regression on weight, weight squared angle 1 and 2
 
 #X = np.concatenate((xWeight, xSID, xTableHeight, xAng1, xAng2), axis=1)
@@ -154,12 +153,30 @@ regressionAndLearningCurve(Xepttrain,np.log(Ytrain),Xeptval,np.log(Yval), 0);
 #X = np.concatenate((np.square(xEPT), xEPT,  xSID, np.square(xSID), xTableHeight, np.square(xTableHeight), xKV, np.exp(xKV), xSF, np.exp(xSF), np.exp(-xSF)), axis=1)
 #mean relative error 24 % +- 40 %
 
-X = np.concatenate(( np.exp(-xSF), np.square(xSID), xWeight, np.square(xWeight), xWeight*np.sin(xAng1), xWeight*np.sin(xAng2), xAng1, np.square(xAng1), xAng2, np.square(xAng2), xKV, np.exp(xKV)), axis=1)
+#X = np.concatenate(( np.exp(-xSF), np.square(xSID), xWeight, np.square(xWeight), xWeight*np.sin(xAng1), xWeight*np.sin(xAng2), xKV, np.exp(xKV)), axis=1)
 #mean relative error 59 % +- 79 %
 
-#, xMAS, np.square(xKV), np.exp(np.square(xKV))
 
-X, yDosePerFrame = shuffle(X, yDosePerFrame, random_state = 0)
+xAng1 = xAng1/10*np.pi/180
+xAng2 = xAng2/10*np.pi/180
+
+xSF = preprocessing.scale(xSF)
+xSID = preprocessing.scale(xSID)
+xWeight = preprocessing.scale(xWeight)
+xKV = preprocessing.scale(xKV)
+
+"""
+print(np.min(xAng1)) #-45 degree
+print(np.max(xAng1)) #+39 degree
+
+print(np.min(xAng2)) #-51 degree
+print(np.max(xAng2)) #+90 degree
+"""
+
+X = np.concatenate(( np.exp(-xSF), np.square(xSID), xWeight, np.square(xWeight), np.exp(xWeight*np.sin(xAng1)), np.exp(xWeight*np.sin(xAng2)), xKV, np.square(xKV), np.exp(xKV)), axis=1)
+
+
+X, yDosePerFrame = shuffle(np.exp(xEPT), yDosePerFrame, random_state = 0)
 
 
 Xtrain = X[0:6000]
