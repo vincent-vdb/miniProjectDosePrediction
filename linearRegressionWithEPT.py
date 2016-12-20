@@ -63,20 +63,20 @@ def regressionAndLearningCurve(xTrain, yTrain, xVal, yVal, myAlpha):
 
   #Compute the error on the training set and on the validation set
   yPredictTrain = reg.predict(xTrain)
-  errorTrain = np.mean(np.square(yPredictTrain-yTrain))
+  errorTrain = np.mean(np.absolute(yPredictTrain-yTrain))
 
   yPredictVal = reg.predict(xVal)
-  errorValid = np.mean(np.square(yPredictVal-yVal))
+  errorValid = np.mean(np.absolute(yPredictVal-yVal))
 
   print("error on training set :",errorTrain)
   print("error on valid set :",errorValid)
   print(reg.coef_)
 
-  print(np.mean(yTrain))
-  print(np.mean(yVal))
+  print("mean value of dose train dataset: ",np.mean(yTrain))
+  print("mean value of dose validation dataset: ",np.mean(yVal))
 
-  relativeErrorTrainLearn = np.abs((yPredictTrain - yTrain)/yTrain)
-  relativeErrorValidLearn = np.abs((yPredictVal - yVal)/yVal)
+  relativeErrorTrainLearn = np.absolute((yPredictTrain - yTrain)/yTrain)
+  relativeErrorValidLearn = np.absolute((yPredictVal - yVal)/yVal)
   print("mean train relative error: ",np.mean(relativeErrorTrainLearn))
   print("mean valid relative error: ",np.mean(relativeErrorValidLearn))
   print("std valid relative error: ", np.std(relativeErrorValidLearn))
@@ -86,7 +86,7 @@ def regressionAndLearningCurve(xTrain, yTrain, xVal, yVal, myAlpha):
   errorTrainLearn = np.zeros(len(xTrain))
   errorValidLearn = np.zeros(len(xTrain))
 
-  for i in range(1,len(xTrain)):
+  for i in range(10,len(xTrain)):
     reg.fit(xTrain[:i], yTrain[:i])
     yPredictTrain = reg.predict(xTrain[:i])
     errorTrainLearn[i] = np.mean(np.square(yPredictTrain-yTrain[:i]))
@@ -107,64 +107,16 @@ def regressionAndLearningCurve(xTrain, yTrain, xVal, yVal, myAlpha):
   #Should show model too simple cause of high bias => need to use more features
   
 
-  """
-  plotx = np.arange(1,50)
-  plotx = plotx.reshape(len(plotx),1)
-  ploty = reg.predict(plotx)
 
-  plt.plot(plotx, ploty, xTrain[:1000], yTrain[:1000], 'rx')
-  plt.show()
-  """
 
   return
 
 
 
-
-"""
-#Create example with only EPT
-xEPT, yDosePerFrame = shuffle(xEPT, yDosePerFrame, random_state = 0)
-
-Xepttrain = xEPT[0:6000]
-Xeptval = xEPT[6001:8000]
-Xepttest = xEPT[8001:]
-
-Ytrain = yDosePerFrame[0:6000]
-Yval = yDosePerFrame[6001:8000]
-Ytest = yDosePerFrame[8001:]
-
-
-
-# make the regression for only EPT
-regressionAndLearningCurve(Xepttrain,np.log(Ytrain),Xeptval,np.log(Yval), 0);
-# mean relative error of 19 %, high bias case
-"""
-
-#make regression on weight, weight squared angle 1 and 2
-
-#X = np.concatenate((xWeight, xSID, xTableHeight, xAng1, xAng2), axis=1)
-#mean relative error 87 %
-
-#X = np.concatenate((xWeight, np.square(xWeight), xSID, np.square(xSID), xTableHeight, np.square(xTableHeight), xAng1, np.square(xAng1), xAng2, np.square(xAng2)), axis=1)
-#mean relative error 85 %
-
-#X = np.concatenate((xWeight, np.square(xWeight), np.exp(xWeight), xSID, np.square(xSID), xTableHeight, np.square(xTableHeight), xAng1, np.square(xAng1), xAng2, np.square(xAng2), xKV, np.exp(xKV), xSF, np.exp(xSF), np.exp(-xSF)), axis=1)
-#mean relative error 59 %
-
-#X = np.concatenate((np.square(xEPT), xEPT,  xSID, np.square(xSID), xTableHeight, np.square(xTableHeight), xKV, np.exp(xKV), xSF, np.exp(xSF), np.exp(-xSF)), axis=1)
-#mean relative error 24 % +- 40 %
-
-#X = np.concatenate(( np.exp(-xSF), np.square(xSID), xWeight, np.square(xWeight), xWeight*np.sin(xAng1), xWeight*np.sin(xAng2), xKV, np.exp(xKV)), axis=1)
-#mean relative error 59 % +- 79 %
-
-
 xAng1 = xAng1/10*np.pi/180
 xAng2 = xAng2/10*np.pi/180
 
-xSF = preprocessing.scale(xSF)
-xSID = preprocessing.scale(xSID)
-xWeight = preprocessing.scale(xWeight)
-xKV = preprocessing.scale(xKV)
+
 
 """
 print(np.min(xAng1)) #-45 degree
@@ -177,17 +129,32 @@ print(np.max(xAng2)) #+90 degree
 #X = np.concatenate(( np.exp(-xSF), np.square(xSID), xWeight, np.square(xWeight), np.exp(xWeight*np.sin(xAng1)), np.exp(xWeight*np.sin(xAng2)), xKV, np.square(xKV), np.exp(xKV)), axis=1)
 
 
+xKV = preprocessing.scale(xKV.reshape(len(xKV),1))
+
+x1 = preprocessing.scale(xEPT)
+x12 = preprocessing.scale(xEPT*xEPT)
+x2 = preprocessing.scale(np.exp(xEPT))
+x3 = preprocessing.scale(np.square(xEPT))
+x4 = preprocessing.scale((1-xEPT)*np.exp(xEPT))
+x5 = preprocessing.scale(np.exp(-xSF))
+x6 = preprocessing.scale(np.exp(xKV))
+
+yDoseResc = preprocessing.scale(yDose)
+
 #Try to find a good model for the EPT first
-X = np.concatenate(((1-xEPT)*np.exp(xEPT), np.square(xEPT) ), axis=1)
+#X = np.concatenate((x1, x2, x3, x4, x5, x6), axis=1)
+X = np.concatenate((x1, x12), axis=1)
+print("mean dose value all data: ", np.mean(yDose))
+X, yDosePerFrame = shuffle(X, yDose, random_state = 0)
 
-X, yDosePerFrame = shuffle((X, yDose), random_state = 0)
 
 
-Xtrain = X[0:3000]
+
+Xtrain = X[0:6000]
 Xval = X[6001:8000]
 Xtest = X[8001:]
 
-Ytrain = yDosePerFrame[0:3000]
+Ytrain = yDosePerFrame[0:6000]
 Yval = yDosePerFrame[6001:8000]
 Ytest = yDosePerFrame[8001:]
 
