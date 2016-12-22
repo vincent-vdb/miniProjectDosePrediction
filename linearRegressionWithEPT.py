@@ -138,12 +138,13 @@ x3 = preprocessing.scale(np.square(xEPT))
 x4 = preprocessing.scale((1-xEPT)*np.exp(xEPT))
 x5 = preprocessing.scale(np.exp(-xSF))
 x6 = preprocessing.scale(np.exp(xKV))
+x7 = preprocessing.scale(xMAS)
 
 yDoseResc = preprocessing.scale(yDose)
 
 #Try to find a good model for the EPT first
-#X = np.concatenate((x1, x2, x3, x4, x5, x6), axis=1)
-X = np.concatenate((x1, x12), axis=1)
+X = np.concatenate((x1, x2, x3, x4, x5, x6, x7), axis=1)
+#X = np.concatenate((x1, x12), axis=1)
 print("mean dose value all data: ", np.mean(yDose))
 X, yDosePerFrame = shuffle(X, yDose, random_state = 0)
 
